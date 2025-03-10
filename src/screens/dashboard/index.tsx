@@ -1,9 +1,8 @@
-import { FlatList, ListRenderItem, ScrollView, StatusBar, StyleSheet, Text, View } from 'react-native'
-import React, { useEffect, useMemo, useState } from 'react'
+import { FlatList, Image, ImageBackground, ListRenderItem, ScrollView, StatusBar, Text, View } from 'react-native'
+import React, { useEffect, useState } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { TWStyles } from 'twrn-styles'
 import { styles } from './styles'
-// import { Dropdown } from 'twrn-components'
 import { useRegion } from '@/hooks/region'
 import { Dropdown } from 'react-native-element-dropdown'
 import { useCity } from '@/hooks/city'
@@ -11,8 +10,9 @@ import { useWeather } from '@/hooks/weather'
 import WebView from 'react-native-webview'
 import { Card, Spacer } from 'twrn-components'
 import { Daily } from '@/hooks/weather/types'
-import { format } from 'date-fns'
-// import { Dropdown } from 'twrn-components'
+import moment from 'moment'
+import 'moment/locale/id'
+import { weatherCodes } from '@/hooks/weather/const'
 
 const Dashboard = () => {
   const { provinces, onSelectProvince, selectedProvince } = useRegion()
@@ -21,8 +21,6 @@ const Dashboard = () => {
 
   const [isFocus, setIsFocus] = useState(false);
   const [isFocusCity, setIsFocusCity] = useState(false);
-  console.log('loca', locationWeather)
-  console.log('dailyweather', dailyWeather)
   const [mapHtml, setMapHtml] = useState('');
 
   useEffect(() => {
@@ -53,6 +51,7 @@ const Dashboard = () => {
                       var map = L.map('map').setView([lat, lng], 13);
                       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                           attribution: '&copy; OpenStreetMap contributors'
+
                       }).addTo(map);
                       L.marker([lat, lng])
                       .addTo(map)
@@ -71,90 +70,120 @@ const Dashboard = () => {
     setMapHtml(html);
   }, [locationWeather]);
 
-  const renderItem: ListRenderItem<Daily> = ({item, index}) => {
+  const renderItem: ListRenderItem<Daily> = ({ item }) => {
     return (
-      <Card>
-        <Text style={[TWStyles.textAlignCenter]}>{format(item.time, 'dd')}</Text>
-        <Text>{item.values.sunriseTime}</Text>
-        <Text>{item.values.sunsetTime}</Text>
+      <Card containerStyle={TWStyles.rowGap12}>
+        <Text style={[TWStyles.textAlignCenter, { fontSize: 18, fontWeight: 'bold' }]}>{moment(item.time).locale('id').format('dddd, DD MMMM yyyy')}</Text>
+        <View style={[TWStyles.row, TWStyles.columnGap12]}>
+          <View style={[TWStyles.displayFlex]}>
+            <Text style={{ fontWeight: 'bold' }}>Sunrise: {moment(item.values.sunriseTime).format('hh:mm A')}</Text>
+            <Text style={{ fontWeight: 'bold' }}>Sunset: {moment(item.values.sunsetTime).format('hh:mm A')}</Text>
+            <Text style={{ fontWeight: 'bold' }}>Suhu Rata-rata: {item.values.temperatureAvg}°C, diantara ({item.values.temperatureMin} - {item.values.temperatureMax})°C</Text>
+            <Text style={{ fontWeight: 'bold' }}>Cuaca: {weatherCodes.weatherCode[item.values.weatherCodeMax]}</Text>
+          </View>
+          <Image source={weatherCodes.weatherIcon[item.values.weatherCodeMax]} style={{ width: 70, height: 70 }} />
+        </View>
       </Card>
     )
   }
 
-  return (
-    <SafeAreaView style={[TWStyles.displayFlex, TWStyles.rowGap12, TWStyles.horizontalDefaultPadding, TWStyles.verticalDefaultPadding]}>
-      <StatusBar barStyle="dark-content"  />
-      <Text style={[styles.title, TWStyles.textAlignCenter]}>Cari Weather</Text>
-      <ScrollView contentContainerStyle={[TWStyles.flexGrow, TWStyles.rowGap12]}>
-      <View>
-        <Text style={[styles.titlePicker]}>Pilih Provinsi</Text>
-        <Dropdown
-          style={[styles.dropdown, isFocus && { borderColor: 'blue' }]}
-          placeholderStyle={styles.placeholderStyle}
-          selectedTextStyle={styles.selectedTextStyle}
-          inputSearchStyle={styles.inputSearchStyle}
-          iconStyle={styles.iconStyle}
-          data={provinces}
-          search
-          maxHeight={300}
-          labelField="label"
-          valueField="value"
-          placeholder={!isFocus ? 'Pilih Provinsi' : '...'}
-          searchPlaceholder="Search..."
-          value={selectedProvince?.value}
-          onFocus={() => setIsFocus(true)}
-          onBlur={() => setIsFocus(false)}
-          onChange={item => {
-            setIsFocus(false);
-            onSelectProvince(item)
-          }}
-        />
-      </View>
+  const Container = selectedCity && dailyWeather.length > 0 ? ImageBackground : View
+  const containerProps = selectedCity && dailyWeather.length > 0 ? ({
+    source: weatherCodes.weatherIcon[dailyWeather[0].values.weatherCodeMax],
+    blurRadius: 30,
+    resizeMode: 'cover',
+    flex: 1,
+  } as React.ComponentProps<typeof ImageBackground>) : ({
+    style: { flex: 1 },
 
-      {selectedProvince && <View>
-        <Text style={[styles.titlePicker]}>Pilih Kota</Text>
-        <Dropdown
-          style={[styles.dropdown, isFocusCity && { borderColor: 'blue' }]}
-          placeholderStyle={styles.placeholderStyle}
-          selectedTextStyle={styles.selectedTextStyle}
-          inputSearchStyle={styles.inputSearchStyle}
-          iconStyle={styles.iconStyle}
-          data={cities}
-          search
-          maxHeight={300}
-          labelField="label"
-          valueField="value"
-          placeholder={!isFocus ? 'Pilih Kota' : '...'}
-          searchPlaceholder="Search..."
-          value={selectedCity?.value}
-          onFocus={() => setIsFocusCity(true)}
-          onBlur={() => setIsFocusCity(false)}
-          onChange={item => {
-            setIsFocusCity(false);
-            onSelectCity(item)
-          }}
-        />
-      </View>}
-      {(locationWeather && mapHtml) && (
-        <WebView
-          source={{ html: mapHtml }}
-          onMessage={(event) => console.log('Map Clicked:', event.nativeEvent.data)}  
-          onError={(err)  => console.log('err', err)}/>
-      )}
-      {selectedCity && dailyWeather.length > 0 && (
-        <>
-          <Text style={[styles.titlePicker]}>Weather</Text>
-          <FlatList 
-            data={dailyWeather}
-            keyExtractor={item => item.time}
-            renderItem={renderItem}
-            scrollEnabled={false}
-            ItemSeparatorComponent={() => <Spacer height={20} />}
-            contentContainerStyle={{padding: 10}}
-          />
-        </>
-      )}
-      </ScrollView>
+  } as React.ComponentProps<typeof View>)
+
+  return (
+    <SafeAreaView style={[TWStyles.displayFlex, TWStyles.rowGap12]}>
+      <Container {...containerProps}>
+        <View style={[TWStyles.horizontalDefaultPadding, TWStyles.verticalDefaultPadding]}>
+          <StatusBar barStyle="dark-content" />
+          <Text style={[styles.title, TWStyles.textAlignCenter]}>Cari Weather</Text>
+          <ScrollView contentContainerStyle={[TWStyles.flexGrow, TWStyles.rowGap12, TWStyles.verticalDefaultPadding]}>
+            <View>
+              <Text style={[styles.titlePicker]}>Pilih Provinsi</Text>
+              <Dropdown
+                style={[styles.dropdown, isFocus && { borderColor: 'blue' }]}
+                placeholderStyle={styles.placeholderStyle}
+                selectedTextStyle={styles.selectedTextStyle}
+                inputSearchStyle={styles.inputSearchStyle}
+                iconStyle={styles.iconStyle}
+                data={provinces}
+                search
+                maxHeight={300}
+                labelField="label"
+                valueField="value"
+                placeholder={!isFocus ? 'Pilih Provinsi' : '...'}
+                searchPlaceholder="Search..."
+                value={selectedProvince?.value}
+                onFocus={() => setIsFocus(true)}
+                onBlur={() => setIsFocus(false)}
+                onChange={item => {
+                  setIsFocus(false);
+                  onSelectProvince(item)
+                }}
+              />
+            </View>
+
+            {selectedProvince && <View>
+              <Text style={[styles.titlePicker]}>Pilih Kota</Text>
+              <Dropdown
+                style={[styles.dropdown, isFocusCity && { borderColor: 'blue' }]}
+                placeholderStyle={styles.placeholderStyle}
+                selectedTextStyle={styles.selectedTextStyle}
+                inputSearchStyle={styles.inputSearchStyle}
+                iconStyle={styles.iconStyle}
+                data={cities}
+                search
+                maxHeight={300}
+                labelField="label"
+                valueField="value"
+                placeholder={!isFocus ? 'Pilih Kota' : '...'}
+                searchPlaceholder="Search..."
+                value={selectedCity?.value}
+                onFocus={() => setIsFocusCity(true)}
+                onBlur={() => setIsFocusCity(false)}
+                onChange={item => {
+                  setIsFocusCity(false);
+                  onSelectCity(item)
+                }}
+              />
+            </View>}
+            {(locationWeather && mapHtml) && (
+              <WebView
+                source={{ html: mapHtml }}
+                onMessage={(event) => console.log('Map Clicked:', event.nativeEvent.data)}
+                onError={(err) => console.log('err', err)}
+                javaScriptEnabled={true}
+                domStorageEnabled={true}
+              />
+            )}
+            {selectedCity && dailyWeather.length > 0 && (
+              <>
+                <Text style={[styles.titlePicker]}>Weather</Text>
+                <FlatList
+                  data={dailyWeather}
+                  keyExtractor={item => item.time}
+                  renderItem={renderItem}
+                  scrollEnabled={false}
+                  ItemSeparatorComponent={() => <Spacer height={20} />}
+                  contentContainerStyle={{ padding: 10, }}
+                />
+              </>
+            )}
+            <View style={{ marginBottom: 30, alignItems: 'center' }}>
+              <Text>Powered by:</Text>
+              <Text style={{ fontWeight: 'bold', color: 'blue' }}>tomorrow.io, wilayah.id</Text>
+
+            </View>
+          </ScrollView>
+        </View>
+      </Container>
     </SafeAreaView>
   )
 }
