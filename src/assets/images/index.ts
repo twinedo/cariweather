@@ -22,4 +22,5 @@ export const images = {
   7101: require('@/assets/images/7101.png'),
   7102: require('@/assets/images/7102.png'),
   8000: require('@/assets/images/8000.png'),
+  logo: require('./logo.png')
 }

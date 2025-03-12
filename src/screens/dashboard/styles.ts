@@ -15,10 +15,11 @@ export const styles = StyleSheet.create({
   },
   dropdown: {
     height: 50,
-    borderColor: 'gray',
-    borderWidth: 0.5,
+    // borderColor: 'gray',
+    // borderWidth: 0.5,
     borderRadius: 8,
     paddingHorizontal: 8,
+    backgroundColor: 'white'
   },
   icon: {
     marginRight: 5,

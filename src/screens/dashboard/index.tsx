@@ -13,6 +13,7 @@ import { Daily } from '@/hooks/weather/types'
 import moment from 'moment'
 import 'moment/locale/id'
 import { weatherCodes } from '@/hooks/weather/const'
+import { images } from '@/assets/images'
 
 const Dashboard = () => {
   const { provinces, onSelectProvince, selectedProvince } = useRegion()
@@ -76,10 +77,38 @@ const Dashboard = () => {
         <Text style={[TWStyles.textAlignCenter, { fontSize: 18, fontWeight: 'bold' }]}>{moment(item.time).locale('id').format('dddd, DD MMMM yyyy')}</Text>
         <View style={[TWStyles.row, TWStyles.columnGap12]}>
           <View style={[TWStyles.displayFlex]}>
-            <Text style={{ fontWeight: 'bold' }}>Sunrise: {moment(item.values.sunriseTime).format('hh:mm A')}</Text>
-            <Text style={{ fontWeight: 'bold' }}>Sunset: {moment(item.values.sunsetTime).format('hh:mm A')}</Text>
-            <Text style={{ fontWeight: 'bold' }}>Suhu Rata-rata: {item.values.temperatureAvg}°C, diantara ({item.values.temperatureMin} - {item.values.temperatureMax})°C</Text>
-            <Text style={{ fontWeight: 'bold' }}>Cuaca: {weatherCodes.weatherCode[item.values.weatherCodeMax]}</Text>
+            <View style={[TWStyles.displayFlex, TWStyles.row]}>
+              <View style={TWStyles.displayFlex}>
+                <Text style={{ fontWeight: 'bold' }}>Sunrise</Text>
+              </View>
+              <View style={TWStyles.displayFlex}>
+                <Text style={{ fontWeight: 'bold' }}>: {moment(item.values.sunriseTime).format('hh:mm A')}</Text>
+              </View>
+            </View>
+            <View style={[TWStyles.displayFlex, TWStyles.row]}>
+              <View style={TWStyles.displayFlex}>
+                <Text style={{ fontWeight: 'bold' }}>Sunset</Text>
+              </View>
+              <View style={TWStyles.displayFlex}>
+                <Text style={{ fontWeight: 'bold' }}>: {moment(item.values.sunsetTime).format('hh:mm A')}</Text>
+              </View>
+            </View>
+            <View style={[TWStyles.displayFlex, TWStyles.row]}>
+              <View style={TWStyles.displayFlex}>
+                <Text style={{ fontWeight: 'bold' }}>Suhu Rata-rata</Text>
+              </View>
+              <View style={TWStyles.displayFlex}>
+                <Text style={{ fontWeight: 'bold' }}>: {item.values.temperatureAvg}°C{'\n'}({item.values.temperatureMin} - {item.values.temperatureMax})°C</Text>
+              </View>
+            </View>
+            <View style={[TWStyles.displayFlex, TWStyles.row]}>
+              <View style={TWStyles.displayFlex}>
+                <Text style={{ fontWeight: 'bold' }}>Cuaca</Text>
+              </View>
+              <View style={TWStyles.displayFlex}>
+                <Text style={{ fontWeight: 'bold' }}>: {weatherCodes.weatherCode[item.values.weatherCodeMax]}</Text>
+              </View>
+            </View>
           </View>
           <Image source={weatherCodes.weatherIcon[item.values.weatherCodeMax]} style={{ width: 70, height: 70 }} />
         </View>
@@ -87,25 +116,14 @@ const Dashboard = () => {
     )
   }
 
-  const Container = selectedCity && dailyWeather.length > 0 ? ImageBackground : View
-  const containerProps = selectedCity && dailyWeather.length > 0 ? ({
-    source: weatherCodes.weatherIcon[dailyWeather[0].values.weatherCodeMax],
-    blurRadius: 30,
-    resizeMode: 'cover',
-    flex: 1,
-  } as React.ComponentProps<typeof ImageBackground>) : ({
-    style: { flex: 1 },
-
-  } as React.ComponentProps<typeof View>)
-
   return (
-    <SafeAreaView style={[TWStyles.displayFlex, TWStyles.rowGap12]}>
-      <Container {...containerProps}>
+    <ImageBackground blurRadius={50} source={images.logo} imageStyle={{ resizeMode: 'cover' }} style={[TWStyles.displayFlex, TWStyles.rowGap12]}>
+      <SafeAreaView style={[TWStyles.displayFlex, TWStyles.rowGap12]}>
         <View style={[TWStyles.horizontalDefaultPadding, TWStyles.verticalDefaultPadding]}>
           <StatusBar barStyle="dark-content" />
           <Text style={[styles.title, TWStyles.textAlignCenter]}>Cari Weather</Text>
-          <ScrollView contentContainerStyle={[TWStyles.flexGrow, TWStyles.rowGap12, TWStyles.verticalDefaultPadding]}>
-            <View>
+          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={[TWStyles.flexGrow, TWStyles.rowGap12, TWStyles.verticalDefaultPadding]}>
+            <View style={[TWStyles.rowGap8]}>
               <Text style={[styles.titlePicker]}>Pilih Provinsi</Text>
               <Dropdown
                 style={[styles.dropdown, isFocus && { borderColor: 'blue' }]}
@@ -130,7 +148,7 @@ const Dashboard = () => {
               />
             </View>
 
-            {selectedProvince && <View>
+            {selectedProvince && <View style={[TWStyles.rowGap8]}>
               <Text style={[styles.titlePicker]}>Pilih Kota</Text>
               <Dropdown
                 style={[styles.dropdown, isFocusCity && { borderColor: 'blue' }]}
@@ -164,7 +182,7 @@ const Dashboard = () => {
               />
             )}
             {selectedCity && dailyWeather.length > 0 && (
-              <>
+              <View style={[TWStyles.rowGap4]}>
                 <Text style={[styles.titlePicker]}>Weather</Text>
                 <FlatList
                   data={dailyWeather}
@@ -172,19 +190,18 @@ const Dashboard = () => {
                   renderItem={renderItem}
                   scrollEnabled={false}
                   ItemSeparatorComponent={() => <Spacer height={20} />}
-                  contentContainerStyle={{ padding: 10, }}
+                  contentContainerStyle={{ paddingVertical: 10, }}
                 />
-              </>
+              </View>
             )}
-            <View style={{ marginBottom: 30, alignItems: 'center' }}>
-              <Text>Powered by:</Text>
-              <Text style={{ fontWeight: 'bold', color: 'blue' }}>tomorrow.io, wilayah.id</Text>
-
-            </View>
           </ScrollView>
         </View>
-      </Container>
-    </SafeAreaView>
+        <View style={{ marginBottom: 30, alignItems: 'center' }}>
+          <Text>Powered by:</Text>
+          <Text style={{ fontWeight: 'bold', color: 'blue' }}>tomorrow.io, wilayah.id</Text>
+        </View>
+      </SafeAreaView>
+    </ImageBackground>
   )
 }
 
