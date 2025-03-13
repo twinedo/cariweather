@@ -196,11 +196,11 @@ const Dashboard = () => {
             )}
           </ScrollView>
         </View>
-        <View style={{ marginBottom: 30, alignItems: 'center' }}>
-          <Text>Powered by:</Text>
-          <Text style={{ fontWeight: 'bold', color: 'blue' }}>tomorrow.io, wilayah.id</Text>
-        </View>
       </SafeAreaView>
+      <View style={{ marginBottom: 30, alignItems: 'center' }}>
+        <Text>Powered by:</Text>
+        <Text style={{ fontWeight: 'bold', color: 'blue' }}>tomorrow.io, wilayah.id</Text>
+      </View>
     </ImageBackground>
   )
 }

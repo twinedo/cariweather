@@ -8,7 +8,7 @@ export const useCity = (provinceCode?: string) => {
   const [error, setError] = useState('')
 
   const cleanCityName = (city: string): string => {
-    return city.replace(/^(Kab\.|Kota)\s*/i, '').trim();
+    return city.replace(/^(Kab\.|Kota|Adm\.)\s*/i, '').trim();
   };
   
   const onGetCity = async () => {
